@@ -24,9 +24,20 @@ class AppContainer {
         .readTimeout(25, TimeUnit.SECONDS)
         .build()
 
-    private fun retrofit(baseUrl: String) = Retrofit.Builder()
+    // Cabeceras explícitas para la API de Gutenberg. No modifica Google Books ni Open Library.
+    private val gutenbergClient = client.newBuilder()
+        .addInterceptor { chain ->
+            val request = chain.request().newBuilder()
+                .header("Accept", "application/json")
+                .header("User-Agent", "LibrisAndroid/1.2 (Android; EducationalReader)")
+                .build()
+            chain.proceed(request)
+        }
+        .build()
+
+    private fun retrofit(baseUrl: String, httpClient: OkHttpClient = client) = Retrofit.Builder()
         .baseUrl(baseUrl)
-        .client(client)
+        .client(httpClient)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
@@ -38,7 +49,7 @@ class AppContainer {
     val bookRepository = BookRepository(googleBooksApi, openLibraryApi, BuildConfig.GOOGLE_BOOKS_API_KEY)
     val authorRepository = AuthorRepository(openLibraryApi)
     val gutenbergRepository = GutenbergRepository(
-        retrofit("https://gutendex.com/").create(GutendexApi::class.java)
+        retrofit("https://gutendex.com/", gutenbergClient).create(GutendexApi::class.java)
     )
 }
 

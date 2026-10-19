@@ -196,9 +196,24 @@ fun DetailScreen(
             SectionCard(heading = "Leer o descargar", subtitle = "GUTENDEX · PROJECT GUTENBERG") {
                 when {
                     readingState.loading -> LoadingPanel("Buscando una versión gratuita verificable…")
-                    readingState.edition == null -> MessagePanel(
-                        readingState.message ?: "No hay una edición encontrada en Gutenberg."
-                    )
+                    readingState.edition == null -> {
+                        MessagePanel(readingState.message ?: "No hay una edición encontrada en Gutenberg.")
+                        Spacer(Modifier.height(10.dp))
+                        // Alternativa legible si el servidor rechaza el cliente Retrofit.
+                        OutlinedButton(
+                            onClick = {
+                                val search = Uri.encode(book.title.substringBefore(':').trim())
+                                context.openSafeUrl("https://www.gutenberg.org/ebooks/search/?query=$search")
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            border = BorderStroke(1.dp, Border),
+                            shape = RoundedCornerShape(13.dp)
+                        ) {
+                            Icon(Icons.Default.OpenInNew, contentDescription = null, modifier = Modifier.size(17.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Buscar en Project Gutenberg")
+                        }
+                    }
                     else -> {
                         val edition = readingState.edition
                         Text(
