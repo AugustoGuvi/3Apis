@@ -1,5 +1,6 @@
 package com.augusto.libris.di
 
+import com.augusto.libris.BuildConfig
 import com.augusto.libris.data.remote.GoogleBooksApi
 import com.augusto.libris.data.remote.GutendexApi
 import com.augusto.libris.data.remote.OpenLibraryApi
@@ -29,12 +30,13 @@ class AppContainer {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
-    val bookRepository = BookRepository(
-        retrofit("https://www.googleapis.com/books/v1/").create(GoogleBooksApi::class.java)
-    )
-    val authorRepository = AuthorRepository(
-        retrofit("https://openlibrary.org/").create(OpenLibraryApi::class.java)
-    )
+    private val googleBooksApi = retrofit("https://www.googleapis.com/books/v1/")
+        .create(GoogleBooksApi::class.java)
+    private val openLibraryApi = retrofit("https://openlibrary.org/")
+        .create(OpenLibraryApi::class.java)
+
+    val bookRepository = BookRepository(googleBooksApi, openLibraryApi, BuildConfig.GOOGLE_BOOKS_API_KEY)
+    val authorRepository = AuthorRepository(openLibraryApi)
     val gutenbergRepository = GutenbergRepository(
         retrofit("https://gutendex.com/").create(GutendexApi::class.java)
     )

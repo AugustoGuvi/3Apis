@@ -3,6 +3,7 @@ package com.augusto.libris.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.augusto.libris.data.repository.BookRepository
+import com.augusto.libris.data.repository.CatalogSource
 import com.augusto.libris.domain.model.Book
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -16,6 +17,8 @@ data class BooksUiState(
     val books: List<Book> = emptyList(),
     val totalItems: Int = 0,
     val currentQuery: String = "",
+    val source: CatalogSource? = null,
+    val notice: String? = null,
     val error: String? = null
 )
 
@@ -36,18 +39,20 @@ class BooksViewModel(private val repository: BookRepository) : ViewModel() {
         request = viewModelScope.launch {
             _uiState.value = BooksUiState(isLoading = true, currentQuery = query)
             try {
-                val (books, total) = repository.search(query)
+                val result = repository.search(query)
                 _uiState.value = BooksUiState(
-                    books = books,
-                    totalItems = total,
-                    currentQuery = query
+                    books = result.books,
+                    totalItems = result.total,
+                    currentQuery = query,
+                    source = result.source,
+                    notice = result.notice
                 )
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
                 _uiState.value = BooksUiState(
                     currentQuery = query,
-                    error = "No fue posible consultar Google Books. Revisa tu conexión e inténtalo de nuevo."
+                    error = error.message ?: "No fue posible consultar los catálogos: ${error.javaClass.simpleName}."
                 )
             }
         }

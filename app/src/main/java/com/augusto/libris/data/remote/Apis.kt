@@ -11,11 +11,19 @@ interface GoogleBooksApi {
     suspend fun searchBooks(
         @Query("q") query: String,
         @Query("maxResults") maxResults: Int = 20,
-        @Query("printType") printType: String = "books"
+        @Query("printType") printType: String = "books",
+        @Query("key") apiKey: String? = null
     ): GoogleBooksResponseDto
 }
 
 interface OpenLibraryApi {
+    @GET("search.json")
+    suspend fun searchBooks(
+        @Query("q") query: String,
+        @Query("limit") limit: Int = 20,
+        @Query("fields") fields: String = "key,title,author_name,first_publish_year,cover_i,language,isbn,publisher,number_of_pages_median"
+    ): OpenLibraryBooksResponseDto
+
     @GET("search/authors.json")
     suspend fun searchAuthors(
         @Query("q") name: String,

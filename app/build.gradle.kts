@@ -1,8 +1,18 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
+
+// Configuración opcional: GOOGLE_BOOKS_API_KEY en local.properties (no subir esa clave a GitHub).
+val localConfig = Properties().apply {
+    val configFile = rootProject.file("local.properties")
+    if (configFile.exists()) configFile.inputStream().use { load(it) }
+}
+val googleBooksKey = localConfig.getProperty("GOOGLE_BOOKS_API_KEY", "")
+val escapedGoogleBooksKey = googleBooksKey.replace("\\", "\\\\").replace("\"", "\\\"")
 
 android {
     namespace = "com.augusto.libris"
@@ -13,7 +23,8 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.1"
+        buildConfigField("String", "GOOGLE_BOOKS_API_KEY", "\"$escapedGoogleBooksKey\"")
     }
 
     buildTypes {
@@ -32,6 +43,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     packaging {
         resources {

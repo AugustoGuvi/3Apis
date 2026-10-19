@@ -7,7 +7,7 @@ versiones de lectura y descarga que realmente estén en Project Gutenberg.
 
 ## Funcionalidades
 
-- Búsqueda en Google Books por título o autor. Resultados reales con portada,
+- Búsqueda en Google Books por título o autor, con respaldo de Open Library cuando Google Books falle. Resultados reales con portada,
   nombre, autor, fecha y editorial cuando existen.
 - Ficha del libro con descripción, idioma, páginas, ISBN e información editorial.
 - Open Library: búsqueda del autor principal, biografía y hasta ocho obras adicionales.
@@ -52,9 +52,16 @@ $env:Path = "$env:JAVA_HOME\bin;$env:Path"
 
 El APK compilado quedará en `app\build\outputs\apk\debug\app-debug.apk`.
 
-**Las búsquedas públicas de Google Books utilizadas en este proyecto no requieren
-iniciar sesión ni configurar una clave de API.** La disponibilidad real está sujeta
-al servicio y sus cuotas. No hay claves privadas dentro del código.
+**Google Books se consulta primero sin clave** (los datos públicos no requieren autenticación de usuario), pero algunos entornos pueden recibir respuestas HTTP 403/429. La app mostrará el código real y buscará libros en Open Library como respaldo. La información del autor y las lecturas gratuitas siguen consultándose mediante Open Library y Gutendex.
+
+Si Google Books devuelve HTTP 403 en tu emulador, puedes crear una clave habilitada para Google Books API en Google Cloud Console y colocarla en el archivo local.properties del proyecto (no en GitHub):
+
+```properties
+GOOGLE_BOOKS_API_KEY=TU_CLAVE_AQUI
+```
+
+Para API keys restringidas a aplicaciones Android, revisa cómo se identifican las peticiones REST hechas directamente por Retrofit; la restricción debe ser compatible con este flujo. No publiques claves reales en el repositorio ni en capturas. Reconstruye la app después de agregarla.
+
 
 ## Cómo usarla
 
@@ -97,3 +104,11 @@ Se incluyen pruebas unitarias de `BookMatcher` en
 Si no existe SDK Android o acceso a Maven/Google en el entorno donde se generó
 el proyecto, la compilación completa no se puede comprobar allí. La primera
 sincronización debe ejecutarse en Android Studio con conexión a Internet.
+
+## Si las búsquedas fallan en el emulador
+
+1. Abre Chrome **dentro del emulador** y carga `https://openlibrary.org` para comprobar que el emulador tenga red.
+2. Pulsa **Buscar libros**. Ahora se muestra la causa técnica de Google Books (HTTP 403, HTTP 429, SSL, DNS, etc.) y se intenta una búsqueda de respaldo en Open Library.
+3. Si aparece **HTTP 403** en Google Books y quieres que Google Books funcione como origen principal, configura la clave opcional en `local.properties` como se explica arriba.
+4. Si ambas APIs fallan por **DNS o falta de internet**, arregla la conexión del emulador: activa Wi-Fi/datos virtuales, desactiva VPN problemática, o ejecuta **Cold Boot Now** desde Device Manager.
+5. Si hay dudas, abre **Logcat** en Android Studio y filtra por `Libris/GoogleBooks` y `Libris/OpenLibrary` para inspeccionar la excepción de cada servicio.

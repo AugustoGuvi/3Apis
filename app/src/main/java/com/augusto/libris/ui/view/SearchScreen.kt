@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.augusto.libris.data.repository.CatalogSource
 import com.augusto.libris.domain.model.Book
 import com.augusto.libris.ui.components.BookResultCard
 import com.augusto.libris.ui.components.LoadingPanel
@@ -159,6 +160,33 @@ fun SearchScreen(
                 }
             }
         }
+        if (state.notice != null) {
+            item {
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = Color(0xFFFFF1E5),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        state.notice,
+                        modifier = Modifier.padding(13.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Ink
+                    )
+                }
+            }
+        }
+        if (!state.isLoading && state.error == null && state.source != null) {
+            item {
+                Text(
+                    if (state.source == CatalogSource.GOOGLE_BOOKS)
+                        "Fuente de búsqueda: Google Books"
+                    else "Fuente de búsqueda: Open Library (respaldo)",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = SecondaryInk
+                )
+            }
+        }
         when {
             state.isLoading -> item { LoadingPanel("Buscando libros reales en Google Books…") }
             state.error != null -> item { MessagePanel(state.error) }
@@ -169,7 +197,7 @@ fun SearchScreen(
         }
         item {
             Text(
-                "Datos de Google Books. La disponibilidad de portadas, descripciones y ediciones depende de cada registro.",
+                "Datos de Google Books u Open Library. La disponibilidad de portadas, descripciones y ediciones depende de cada registro.",
                 style = MaterialTheme.typography.labelSmall,
                 color = SecondaryInk
             )
